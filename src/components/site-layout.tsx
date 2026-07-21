@@ -25,7 +25,14 @@ function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close menu on route change
   useEffect(() => setOpen(false), [path]);
+
+  // Prevent body scroll when menu open
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   return (
     <header
@@ -34,10 +41,11 @@ function Header() {
       }`}
     >
       <div className="container-luxe flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center rounded-full overflow-hidden size-[60px] ">
-          <img src="/logo.jpg" alt="" />
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/logo.jpg" alt="Sonny Rotties Home" className="h-9 w-auto object-contain" />
         </Link>
 
+        {/* Desktop nav — only visible on large screens */}
         <nav className="hidden items-center gap-8 lg:flex">
           {NAV.map((n) => {
             const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
@@ -63,9 +71,10 @@ function Header() {
           >
             Enquire
           </Link>
+          {/* Hamburger — visible on mobile AND tablet (below lg) */}
           <button
             onClick={() => setOpen((v) => !v)}
-            aria-label="Menu"
+            aria-label={open ? "Close menu" : "Open menu"}
             className="inline-flex h-9 w-9 items-center justify-center border border-border lg:hidden"
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -73,32 +82,56 @@ function Header() {
         </div>
       </div>
 
+      {/* Mobile + Tablet drawer */}
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            className="glass lg:hidden"
-          >
-            <div className="container-luxe flex flex-col py-3">
-              {NAV.map((n) => (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 top-16 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+              onClick={() => setOpen(false)}
+            />
+            {/* Drawer panel */}
+            <motion.div
+              initial={{ opacity: 0, x: "100%" }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 260 }}
+              className="fixed right-0 top-16 z-50 flex h-[calc(100vh-4rem)] w-72 flex-col border-l border-border bg-background shadow-luxe lg:hidden"
+            >
+              <nav className="flex flex-col gap-1 p-6">
+                {NAV.map((n) => {
+                  const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      className={`rounded-xl px-4 py-3 text-sm uppercase tracking-[0.18em] transition ${
+                        active
+                          ? "bg-gold/15 text-gold"
+                          : "text-foreground/80 hover:bg-surface/60 hover:text-gold"
+                      }`}
+                    >
+                      {n.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="mt-auto border-t border-border p-6">
                 <Link
-                  key={n.to}
-                  to={n.to}
-                  className="border-b border-border py-3 text-sm text-foreground last:border-0"
+                  to="/contact"
+                  onClick={() => setOpen(false)}
+                  className="block w-full border border-gold bg-gold px-4 py-3 text-center text-xs uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-transparent hover:text-gold"
                 >
-                  {n.label}
+                  Enquire Now
                 </Link>
-              ))}
-              <Link
-                to="/contact"
-                className="mt-4 border border-gold bg-gold px-4 py-3 text-center text-xs uppercase tracking-[0.18em] text-primary-foreground"
-              >
-                Enquire
-              </Link>
-            </div>
-          </motion.div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>
@@ -108,9 +141,9 @@ function Header() {
 function Footer() {
   return (
     <footer className="border-t border-border">
-      <div className="container-luxe grid gap-12 py-16 lg:grid-cols-4">
+      <div className="container-luxe grid gap-12 py-16 md:grid-cols-4">
         <div>
-          <p className="text-sm font-medium">Sonny Rotties Home</p>
+          <img src="/logo.jpg" alt="Sonny Rotties Home" className="h-10 w-auto object-contain" />
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
             Family-raised Rottweiler puppies in Texas. Ethical breeding, healthy bloodlines.
           </p>
@@ -149,7 +182,7 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="container-luxe flex flex-col items-center justify-between gap-2 py-6 text-xs text-muted-foreground lg:flex-row">
+        <div className="container-luxe flex flex-col items-center justify-between gap-2 py-6 text-xs text-muted-foreground md:flex-row">
           <p>© {new Date().getFullYear()} Sonny Rotties Home.</p>
           <p>Crafted in Texas.</p>
         </div>

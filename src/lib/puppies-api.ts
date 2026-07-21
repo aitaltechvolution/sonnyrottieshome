@@ -1,20 +1,19 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Real puppy images (uploaded)
+// Real puppy images
 import lucyImg   from "@/assets/lucy.jpg";
+import maggieImg from "@/assets/maggie.jpg";
 import maxImg    from "@/assets/max.jpg";
 import brunoImg  from "@/assets/bruno.jpg";
 import lunaImg   from "@/assets/luna.jpg";
 import lacyImg   from "@/assets/lacy.jpg";
+import marioImg  from "@/assets/mario.jpg";
 import zizaImg   from "@/assets/ziza.jpg";
 import mollyImg  from "@/assets/molly.jpg";
+import taraImg   from "@/assets/tara.jpg";
 import keshImg   from "@/assets/kesh.jpg";
-import maggieImg from "@/assets/maggie.jpg";
-import marioImg from "@/assets/mario.jpg";
-import taraImg from "@/assets/tara.jpg";
-import ayimImg from "@/assets/ayim.jpg";
-
+import ayimImg   from "@/assets/ayim.jpg";
 
 export type PuppyStatus = "Available" | "Reserved" | "Sold";
 
@@ -43,20 +42,20 @@ export type PuppyRow = {
 // Maps slug → bundled image for all 12 real puppies
 const fallbackBySlug: Record<string, string> = {
   lucy:   lucyImg,
+  maggie: maggieImg,
   max:    maxImg,
   bruno:  brunoImg,
   luna:   lunaImg,
   lacy:   lacyImg,
+  mario:  marioImg,
   ziza:   zizaImg,
   molly:  mollyImg,
-  kesh:   keshImg,
-  maggie: maggieImg,
-  mario:  marioImg,
   tara:   taraImg,
+  kesh:   keshImg,
   ayim:   ayimImg,
 };
 
-const fallbackPool = [lucyImg, maxImg, brunoImg, lunaImg, lacyImg, zizaImg, mollyImg, keshImg, marioImg, maggieImg, ayimImg, taraImg];
+const fallbackPool = [lucyImg, maggieImg, maxImg, brunoImg, lunaImg, lacyImg, marioImg, zizaImg, mollyImg, taraImg, keshImg, ayimImg];
 
 export function resolveImage(p: Pick<PuppyRow, "slug" | "image_url">): string {
   if (p.image_url && p.image_url.length > 0) return p.image_url;

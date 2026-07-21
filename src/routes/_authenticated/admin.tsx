@@ -17,6 +17,8 @@ const NAV: NavItem[] = [
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
+const ADMIN_EMAIL = "sonnyrottieshome@gmail.com";
+
 function AdminLayout() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -27,11 +29,9 @@ function AdminLayout() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      setEmail(user?.email ?? null);
-      if (!user) { setChecking(false); return; }
-      const { data } = await supabase.from("user_roles")
-        .select("role").eq("user_id", user.id).eq("role", "admin").maybeSingle();
-      setIsAdmin(Boolean(data));
+      const userEmail = user?.email ?? null;
+      setEmail(userEmail);
+      setIsAdmin(userEmail === ADMIN_EMAIL);
       setChecking(false);
     })();
   }, []);
@@ -61,8 +61,7 @@ function AdminLayout() {
       <div className="grid md:grid-cols-[260px_1fr]">
         <aside className="border-r border-border/60 bg-surface/40 p-6 md:min-h-screen">
           <Link to="/" className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-full gold-hairline bg-background font-display text-gold">S</span>
-            <span className="font-display text-lg">Admin</span>
+            <img src="/logo.jpg" alt="Sonny Rotties Home" className="h-9 w-auto object-contain" />
           </Link>
           <nav className="mt-10 space-y-1">
             {NAV.map((n) => {

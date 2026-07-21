@@ -25,6 +25,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminEnquiriesRouteImport } from './routes/_authenticated/admin.enquiries'
 import { Route as AuthenticatedAdminPuppiesRouteImport } from './routes/_authenticated/admin.puppies'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminPuppiesIndexRouteImport } from './routes/_authenticated/admin.puppies.index'
 import { Route as AuthenticatedAdminPuppiesIdRouteImport } from './routes/_authenticated/admin.puppies.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -109,6 +110,12 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminPuppiesIndexRoute =
+  AuthenticatedAdminPuppiesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminPuppiesRoute,
+  } as any)
 const AuthenticatedAdminPuppiesIdRoute =
   AuthenticatedAdminPuppiesIdRouteImport.update({
     id: '/$id',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/puppies/$id': typeof AuthenticatedAdminPuppiesIdRoute
+  '/admin/puppies/': typeof AuthenticatedAdminPuppiesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,10 +154,10 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/puppies/$slug': typeof PuppiesSlugRoute
   '/admin/enquiries': typeof AuthenticatedAdminEnquiriesRoute
-  '/admin/puppies': typeof AuthenticatedAdminPuppiesRouteWithChildren
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/puppies/$id': typeof AuthenticatedAdminPuppiesIdRoute
+  '/admin/puppies': typeof AuthenticatedAdminPuppiesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/puppies/$id': typeof AuthenticatedAdminPuppiesIdRoute
+  '/_authenticated/admin/puppies/': typeof AuthenticatedAdminPuppiesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/'
     | '/admin/puppies/$id'
+    | '/admin/puppies/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -203,10 +213,10 @@ export interface FileRouteTypes {
     | '/terms'
     | '/puppies/$slug'
     | '/admin/enquiries'
-    | '/admin/puppies'
     | '/admin/settings'
     | '/admin'
     | '/admin/puppies/$id'
+    | '/admin/puppies'
   id:
     | '__root__'
     | '/'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/puppies/$id'
+    | '/_authenticated/admin/puppies/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -355,6 +366,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/puppies/': {
+      id: '/_authenticated/admin/puppies/'
+      path: '/'
+      fullPath: '/admin/puppies/'
+      preLoaderRoute: typeof AuthenticatedAdminPuppiesIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminPuppiesRoute
+    }
     '/_authenticated/admin/puppies/$id': {
       id: '/_authenticated/admin/puppies/$id'
       path: '/$id'
@@ -367,11 +385,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminPuppiesRouteChildren {
   AuthenticatedAdminPuppiesIdRoute: typeof AuthenticatedAdminPuppiesIdRoute
+  AuthenticatedAdminPuppiesIndexRoute: typeof AuthenticatedAdminPuppiesIndexRoute
 }
 
 const AuthenticatedAdminPuppiesRouteChildren: AuthenticatedAdminPuppiesRouteChildren =
   {
     AuthenticatedAdminPuppiesIdRoute: AuthenticatedAdminPuppiesIdRoute,
+    AuthenticatedAdminPuppiesIndexRoute: AuthenticatedAdminPuppiesIndexRoute,
   }
 
 const AuthenticatedAdminPuppiesRouteWithChildren =
