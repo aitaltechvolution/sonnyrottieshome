@@ -63,9 +63,9 @@ export function resolveImage(p: Pick<PuppyRow, "slug" | "image_url">): string {
 }
 
 export function resolveGallery(p: Pick<PuppyRow, "slug" | "image_url" | "gallery">): string[] {
-  if (p.gallery && p.gallery.length > 0) return p.gallery;
   const primary = resolveImage(p);
-  return [primary, ...fallbackPool.filter((f) => f !== primary).slice(0, 2)];
+  const extras = (p.gallery ?? []).filter((g) => g && g.length > 0 && g !== primary);
+  return [primary, ...extras];
 }
 
 export const puppiesQueryOptions = () =>

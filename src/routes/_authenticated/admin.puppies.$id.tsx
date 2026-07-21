@@ -18,8 +18,15 @@ const empty: Form = {
   vaccination: "", deworming: "", father: "", mother: "",
 };
 
+const MAX_GALLERY = 3; // 1 main + 3 gallery = 4 total
+
 function slugify(v: string) {
   return v.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function getPublicUrl(path: string): string {
+  const { data } = supabase.storage.from("puppies").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 function PuppyEditor() {
@@ -43,15 +50,19 @@ function PuppyEditor() {
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const uploadImage = async (file: File, into: "image_url" | "gallery") => {
+    if (into === "gallery" && (form.gallery ?? []).length >= MAX_GALLERY) {
+      toast.error(`Max ${MAX_GALLERY} gallery images allowed (${MAX_GALLERY + 1} total with main image)`);
+      return;
+    }
     setUploading(true);
     try {
-      const path = `${form.slug || "puppy"}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
-      const { error } = await supabase.storage.from("puppies").upload(path, file);
+      const ext = file.name.split(".").pop();
+      const path = `${form.slug || "puppy"}/${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from("puppies").upload(path, file, { upsert: true });
       if (error) throw error;
-      const { data } = await supabase.storage.from("puppies").createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-      if (!data?.signedUrl) throw new Error("No URL returned");
-      if (into === "image_url") set("image_url", data.signedUrl);
-      else set("gallery", [...(form.gallery ?? []), data.signedUrl]);
+      const url = getPublicUrl(path);
+      if (into === "image_url") set("image_url", url);
+      else set("gallery", [...(form.gallery ?? []), url]);
       toast.success("Uploaded");
     } catch (e) { toast.error((e as Error).message); }
     finally { setUploading(false); }
@@ -85,6 +96,9 @@ function PuppyEditor() {
   };
 
   if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+
+  const galleryCount = (form.gallery ?? []).length;
+  const canAddGallery = galleryCount < MAX_GALLERY;
 
   return (
     <form onSubmit={save} className="max-w-4xl">
@@ -126,40 +140,74 @@ function PuppyEditor() {
         </label>
       </div>
 
-      <div className="mt-10 space-y-6">
+      {/* ── Images ── */}
+      <div className="mt-10 space-y-8">
+
+        {/* Main image */}
         <div>
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-muted-foreground">Main image</p>
+          <p className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">Main image</p>
+          <p className="mb-3 text-xs text-muted-foreground">This is the primary photo shown on cards and the popup.</p>
           <div className="flex items-center gap-4">
-            {form.image_url && <img src={form.image_url} alt="" className="h-20 w-20 rounded-xl object-cover" />}
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full gold-hairline px-4 py-2 text-sm hover:bg-surface/60">
-              <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], "image_url")} />
-            </label>
-            {form.image_url && <button type="button" onClick={() => set("image_url", "")} className="text-xs text-destructive">Remove</button>}
+            {form.image_url ? (
+              <div className="relative">
+                <img src={form.image_url} alt="Main" className="h-28 w-28 rounded-xl object-cover ring-2 ring-gold/40" />
+                <button type="button" onClick={() => set("image_url", "")}
+                  className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-destructive text-white">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <label className="inline-flex h-28 w-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground hover:border-gold">
+                <Upload className="h-5 w-5" />
+                Upload
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], "image_url")} />
+              </label>
+            )}
+            {form.image_url && (
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full gold-hairline px-4 py-2 text-sm hover:bg-surface/60">
+                <Upload className="h-4 w-4" /> {uploading ? "Uploading…" : "Replace"}
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], "image_url")} />
+              </label>
+            )}
           </div>
         </div>
 
+        {/* Gallery — max 3 */}
         <div>
-          <p className="mb-2 text-[11px] uppercase tracking-widest text-muted-foreground">Gallery</p>
+          <p className="mb-1 text-[11px] uppercase tracking-widest text-muted-foreground">
+            Gallery <span className="normal-case tracking-normal text-muted-foreground/60">({galleryCount}/{MAX_GALLERY})</span>
+          </p>
+          <p className="mb-3 text-xs text-muted-foreground">Up to 3 extra photos (4 total with main image).</p>
           <div className="flex flex-wrap items-center gap-3">
             {(form.gallery ?? []).map((g, i) => (
               <div key={i} className="relative">
-                <img src={g} alt="" className="h-20 w-20 rounded-xl object-cover" />
+                <img src={g} alt="" className="h-24 w-24 rounded-xl object-cover" />
                 <button type="button" onClick={() => set("gallery", form.gallery.filter((_, x) => x !== i))}
-                  className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-destructive text-white"><X className="h-3 w-3" /></button>
+                  className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-destructive text-white">
+                  <X className="h-3 w-3" />
+                </button>
               </div>
             ))}
-            <label className="inline-flex h-20 w-20 cursor-pointer items-center justify-center rounded-xl border border-dashed border-border/60 text-muted-foreground hover:border-gold">
-              <Upload className="h-4 w-4" />
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], "gallery")} />
-            </label>
+            {canAddGallery && (
+              <label className="inline-flex h-24 w-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground hover:border-gold">
+                <Upload className="h-4 w-4" />
+                Add
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], "gallery")} />
+              </label>
+            )}
+            {!canAddGallery && (
+              <p className="text-xs text-muted-foreground">Max gallery images reached.</p>
+            )}
           </div>
         </div>
       </div>
 
       <div className="mt-10 flex gap-3">
-        <button disabled={saving} className="rounded-full bg-gold px-7 py-4 text-sm font-medium text-primary-foreground shadow-luxe hover:brightness-110 disabled:opacity-60">
-          {saving ? "Saving…" : "Save puppy"}
+        <button disabled={saving || uploading} className="rounded-full bg-gold px-7 py-4 text-sm font-medium text-primary-foreground shadow-luxe hover:brightness-110 disabled:opacity-60">
+          {saving ? "Saving…" : uploading ? "Uploading…" : "Save puppy"}
         </button>
         <button type="button" onClick={() => navigate({ to: "/admin/puppies" })} className="rounded-full gold-hairline px-7 py-4 text-sm hover:bg-surface/60">Cancel</button>
       </div>

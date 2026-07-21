@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { X, ShieldCheck, Syringe, Stethoscope } from "lucide-react";
 import { Dialog, DialogPortal, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { resolveImage, type PuppyRow } from "@/lib/puppies-api";
+import { resolveImage, resolveGallery, type PuppyRow } from "@/lib/puppies-api";
 import { cn } from "@/lib/utils";
 
 export function PuppyModal({
@@ -12,9 +13,12 @@ export function PuppyModal({
   puppy: PuppyRow | null;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [activeImg, setActiveImg] = useState<string | null>(null);
   const isAvailable = puppy?.status === "Available";
 
-  // Prefill the contact form: which dog, and a starter message.
+  const gallery = puppy ? resolveGallery(puppy) : [];
+  const mainImg = activeImg ?? (puppy ? resolveImage(puppy) : "");
+
   const contactSearch = puppy
     ? {
         puppy: puppy.name,
@@ -22,13 +26,15 @@ export function PuppyModal({
       }
     : undefined;
 
+  // Reset active image when puppy changes
+  if (!puppy && activeImg) setActiveImg(null);
+
   return (
     <Dialog open={!!puppy} onOpenChange={onOpenChange}>
       <DialogPortal>
         <DialogOverlay className="duration-200" />
         <DialogPrimitive.Content
           className={cn(
-            // Fixed + centered, capped to the viewport so it always fits (mobile included).
             "fixed left-1/2 top-1/2 z-50 flex max-h-[88vh] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border border-border/60 bg-background shadow-luxe outline-none",
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -41,16 +47,38 @@ export function PuppyModal({
               <DialogTitle className="sr-only">{puppy.name}</DialogTitle>
 
               <div className="flex-1 overflow-y-auto">
-                <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface sm:aspect-[4/3]">
+                {/* Main image */}
+                <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-surface">
                   <img
-                    src={resolveImage(puppy)}
+                    src={mainImg}
                     alt={puppy.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition-all duration-300"
                   />
                   <span className="absolute left-3 top-3 rounded-full border border-background/60 bg-background/80 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-foreground backdrop-blur">
                     {puppy.status}
                   </span>
                 </div>
+
+                {/* Thumbnail strip — only show if there are multiple images */}
+                {gallery.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto px-4 pt-3 pb-1">
+                    {gallery.map((img, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setActiveImg(img)}
+                        className={cn(
+                          "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition",
+                          (activeImg === img || (!activeImg && i === 0))
+                            ? "border-gold"
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        )}
+                      >
+                        <img src={img} alt="" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
@@ -126,11 +154,9 @@ export function PuppyModal({
                 </div>
               </div>
 
-              {/* Sticky action bar so buttons stay reachable on small screens */}
+              {/* Sticky action bar */}
               <div className="flex shrink-0 items-center gap-3 border-t border-border/60 bg-background p-4 sm:p-5">
-                <DialogPrimitive.Close
-                  className="inline-flex h-11 flex-1 items-center justify-center rounded-full gold-hairline text-sm hover:bg-surface/60 sm:flex-none sm:px-6"
-                >
+                <DialogPrimitive.Close className="inline-flex h-11 flex-1 items-center justify-center rounded-full gold-hairline text-sm hover:bg-surface/60 sm:flex-none sm:px-6">
                   Close
                 </DialogPrimitive.Close>
                 {isAvailable && (
