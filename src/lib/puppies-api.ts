@@ -10,12 +10,11 @@ import lacyImg   from "@/assets/lacy.jpg";
 import zizaImg   from "@/assets/ziza.jpg";
 import mollyImg  from "@/assets/molly.jpg";
 import keshImg   from "@/assets/kesh.jpg";
+import maggieImg from "@/assets/maggie.jpg";
+import marioImg from "@/assets/mario.jpg";
+import taraImg from "@/assets/tara.jpg";
+import ayimImg from "@/assets/ayim.jpg";
 
-// Fallbacks for Maggie, Mario, Tara, Ayim (no separate photo uploaded)
-import fallback1 from "@/assets/puppy-1.jpg";
-import fallback2 from "@/assets/puppy-2.jpg";
-import fallback3 from "@/assets/puppy-3.jpg";
-import fallback4 from "@/assets/puppy-4.jpg";
 
 export type PuppyStatus = "Available" | "Reserved" | "Sold";
 
@@ -51,14 +50,13 @@ const fallbackBySlug: Record<string, string> = {
   ziza:   zizaImg,
   molly:  mollyImg,
   kesh:   keshImg,
-  // No separate upload — cycle through generic fallbacks
-  maggie: fallback1,
-  mario:  fallback2,
-  tara:   fallback3,
-  ayim:   fallback4,
+  maggie: maggieImg,
+  mario:  marioImg,
+  tara:   taraImg,
+  ayim:   ayimImg,
 };
 
-const fallbackPool = [lucyImg, maxImg, brunoImg, lunaImg, lacyImg, zizaImg, mollyImg, keshImg];
+const fallbackPool = [lucyImg, maxImg, brunoImg, lunaImg, lacyImg, zizaImg, mollyImg, keshImg, marioImg, maggieImg, ayimImg, taraImg];
 
 export function resolveImage(p: Pick<PuppyRow, "slug" | "image_url">): string {
   if (p.image_url && p.image_url.length > 0) return p.image_url;
