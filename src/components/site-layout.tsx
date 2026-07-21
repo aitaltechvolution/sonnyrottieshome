@@ -34,11 +34,11 @@ function Header() {
       }`}
     >
       <div className="container-luxe flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 text-sm font-medium tracking-tight">
-          Sonny Rotties<span className="text-muted-foreground">Home</span>
+        <Link to="/" className="flex items-center rounded-full overflow-hidden size-[60px] ">
+          <img src="/logo.jpg" alt="" />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-8 lg:flex">
           {NAV.map((n) => {
             const active = n.to === "/" ? path === "/" : path.startsWith(n.to);
             return (
@@ -59,14 +59,14 @@ function Header() {
           <ThemeToggle />
           <Link
             to="/contact"
-            className="hidden rounded-none border border-gold bg-gold px-4 py-2 text-xs uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-transparent hover:text-gold md:inline-flex"
+            className="hidden rounded-none border border-gold bg-gold px-4 py-2 text-xs uppercase tracking-[0.18em] text-primary-foreground transition hover:bg-transparent hover:text-gold lg:inline-flex"
           >
             Enquire
           </Link>
           <button
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
-            className="inline-flex h-9 w-9 items-center justify-center border border-border md:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center border border-border lg:hidden"
           >
             {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
@@ -79,7 +79,7 @@ function Header() {
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            className="glass md:hidden"
+            className="glass lg:hidden"
           >
             <div className="container-luxe flex flex-col py-3">
               {NAV.map((n) => (
@@ -108,7 +108,7 @@ function Header() {
 function Footer() {
   return (
     <footer className="border-t border-border">
-      <div className="container-luxe grid gap-12 py-16 md:grid-cols-4">
+      <div className="container-luxe grid gap-12 py-16 lg:grid-cols-4">
         <div>
           <p className="text-sm font-medium">Sonny Rotties Home</p>
           <p className="mt-4 max-w-xs text-sm text-muted-foreground">
@@ -149,7 +149,7 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="container-luxe flex flex-col items-center justify-between gap-2 py-6 text-xs text-muted-foreground md:flex-row">
+        <div className="container-luxe flex flex-col items-center justify-between gap-2 py-6 text-xs text-muted-foreground lg:flex-row">
           <p>© {new Date().getFullYear()} Sonny Rotties Home.</p>
           <p>Crafted in Texas.</p>
         </div>
